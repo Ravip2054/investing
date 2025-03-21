@@ -1,0 +1,37 @@
+name: Build macOS .app file
+
+on:
+  push:
+    branches:
+      - main  # Runs on push to main branch
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest  # Runs on a macOS machine
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Gets your code
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Set desired Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Install dependencies
+
+      - name: Build the .app file
+        run: |
+          pyinstaller --onefile --windowed --name "MyMacApp" app.py
+
+      - name: Upload the .app artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-app
+          path: dist/MyMacApp.app
