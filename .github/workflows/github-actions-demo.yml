@@ -10,32 +10,30 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest  # This will use a macOS runner
+    runs-on: macos-latest  # Ensures the job runs on a macOS machine
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4  # Use the latest version
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4  # Use the latest version
         with:
-          python-version: '3.x'  # Specify your Python version
+          python-version: '3.x'  # Change this to your required version
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt  # Install any dependencies
+          pip install -r requirements.txt  # Install required dependencies
 
       - name: Install PyInstaller
-        run: |
-          pip install pyinstaller  # Install PyInstaller to package your app
+        run: pip install pyinstaller  # Required for building the .app
 
       - name: Build the .app file
-        run: |
-          pyinstaller --onefile --windowed --add-data "your_file_path:." --name "YourApp" your_script.py
+        run: pyinstaller --onefile --windowed --name "YourApp" your_script.py
 
       - name: Upload the .app artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3  # Updated to v3
         with:
           name: macos-app
-          path: dist/YourApp.app  # Path to the generated .app file
+          path: dist/YourApp.app  # Ensure the correct path
