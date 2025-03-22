@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest  # Use ''windows-latest' for windows runner
+    runs-on: windows-latest #macos-latest  # Use ''windows-latest' for windows runner
 
     steps:
       - name: Checkout repository
@@ -30,13 +30,13 @@ jobs:
         run: pip install pyinstaller  # Required for building .app
 
       - name: Build the .app file
-        run: pyinstaller --onefile --windowed --name "MyMacApp" app.py #'run: pyinstaller --onefile --name "MyWindowsApp" app.py'
+        run: pyinstaller --onefile --name "MyWindowsApp" app.py #pyinstaller --onefile --windowed --name "MyMacApp" app.py #'run: pyinstaller --onefile --name "MyWindowsApp" app.py'
 
       - name: Upload the .app artifact
         uses: actions/upload-artifact@v4  # Updated version
         with:
-          name: macos-app #" windows-exe"
-          path: dist/MyMacApp.app #.exe for windows # Make sure this path is correct
+          name: windows-exe #macos-app #" windows-exe"
+          path: dist/MyMacApp.exe #.exe for windows # Make sure this path is correct
 
 
 
