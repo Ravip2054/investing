@@ -30,7 +30,7 @@ jobs:
         run: pip install pyinstaller
 
       - name: Build the .app file
-        run: pyinstaller --onefile --name "MyMacApp" --windowed --icon=app_icon.icns app.py
+        run: pyinstaller --onefile --name "MyMacApp" app.py
 
       - name: Upload the .app artifact
         uses: actions/upload-artifact@v4
