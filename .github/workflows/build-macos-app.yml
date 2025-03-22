@@ -1,4 +1,4 @@
-name: Build macOS .app file
+name: Build Windows .exe file
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest  # Use macOS runner
+    runs-on: windows-latest  # Use Windows runner
 
     steps:
       - name: Checkout repository
@@ -29,14 +29,11 @@ jobs:
       - name: Install PyInstaller
         run: pip install pyinstaller
 
-      - name: Build the .app file
-        run: pyinstaller --onefile --name "MyMacApp" app.py
+      - name: Build the .exe file
+        run: pyinstaller --onefile --name "MyWindowsApp" app.py
 
-      - name: List the contents of dist
-        run: ls -al dist  # List detailed contents of the dist directory
-
-      - name: Upload the .app artifact
+      - name: Upload the .exe artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-app
-          path: dist/MyMacApp.app  # Make sure this matches the actual output file
+          name: windows-exe
+          path: dist/MyWindowsApp.exe
