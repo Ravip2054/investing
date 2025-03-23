@@ -188,6 +188,47 @@ def fetch_moving_averages(driver):
     
     return manames, simples, simplesignals, expos, exposignals
 
+def fetch_exchangerate(driver):
+    tableMA = driver.find_element(By.XPATH, "//table[@id='exchange_rates_1']/tbody")
+    rows = tableMA.find_elements(By.XPATH, "./tr")
+    
+    col1s = []
+    col2s = []
+    col3s = []
+    col4s = []
+    col5s = []
+    col6s = []
+    col7s = []
+    col8s = []
+
+    
+    for row in rows:
+        try:
+            # Extract name (typically in the first column)
+            col1 = row.find_element(By.XPATH, "./td[1]").text.replace("&nbsp;", "") # Name in first column
+            col2 = row.find_element(By.XPATH, "./td[2]").get_attribute("innerHTML")
+            col3 = row.find_element(By.XPATH, "./td[3]").get_attribute("innerHTML")
+            col4 = row.find_element(By.XPATH,"./td[4]").get_attribute("innerHTML")
+            col5 = row.find_element(By.XPATH, "./td[5]").get_attribute("innerHTML")
+            col6 = row.find_element(By.XPATH, "./td[6]").get_attribute("innerHTML")
+            col7 = row.find_element(By.XPATH, "./td[7]").get_attribute("innerHTML")
+            col8 = row.find_element(By.XPATH, "./td[8]").get_attribute("innerHTML")
+            # Extract value (typically in the second column)
+            col1s.append(col1)
+            col2s.append(col2)
+            col3s.append(col3)
+            col4s.append(col4)
+            col5s.append(col5)
+            col6s.append(col6)
+            col7s.append(col7)
+            col8s.append(col8)
+
+        except Exception as e:
+            # Skip rows where extraction fails
+            continue
+    
+    return col1s, col2s, col3s, col4s, col5s, col6s, col7s, col8s
+
 
 
 def fetch_pivot_points(driver):
@@ -297,6 +338,55 @@ def extract_ec_data(driver, url):
     
     return dfcalendar, dfbankrate, theday
 
+def extract_exchangerate_data(driver, url):
+    driver.get(url)
+    time.sleep(5)  # Allow time for page to load
+    col1, col2, col3, col4, col5, col6, col7, col8 = fetch_exchangerate(driver)
+    dfexchangerate = pd.DataFrame({
+        "Symbol": col1,
+        "USD": col2,
+        "EUR": col3,
+        "GBP": col4,
+        "JPY": col5,
+        "CHF": col6,
+        "CAD": col7,
+        "AUD": col8
+    })
+
+
+
+
+
+    return dfexchangerate
+
+def extract_futures_data(driver, url):
+    driver.get(url)
+    time.sleep(5)  # Allow time for page to load
+    Name1s, Month1s, Last1s, High1s, Low1s, Chg1s, Chgper1s, Time1s, Name2s, Month2s, Last2s, High2s, Low2s, Chg2s, Chgper2s = fetch_change_futures(driver)
+    dfpricefutures = pd.DataFrame({
+        "Name": Name1s,
+        "Month": Month1s,
+        "Last": Last1s,
+        "High": High1s,
+        "Low": Low1s,
+        "Change": Chg1s,
+        "Change Percentage": Chgper1s,
+        "Time": Time1s,
+    })
+    defperformancefutures = pd.DataFrame({
+        "Name": Name2s,
+        "Daily": Month2s,
+        "Week": Last2s,
+        "Month": High2s,
+        "Ytd": Low2s,
+        "1 year": Chg2s,
+        "3 Year": Chgper2s
+
+
+    })
+    return dfpricefutures, defperformancefutures
+
+
 
 def extract_cur_data(driver, url):
     driver.get(url)
@@ -342,6 +432,88 @@ def extract_cur_data(driver, url):
 
     
     return dfcurrencymarket, dfpercentchange, dfpipchange
+
+def fetch_change_futures(driver):
+    tablechangefutures = driver.find_element(By.XPATH, "//div[@data-test='dynamic-table']//table/tbody")
+    rows = tablechangefutures.find_elements(By.XPATH, "./tr")
+
+    Name1s = []
+    Month1s = []
+    Last1s=[]
+    High1s = []
+
+    Low1s = []
+    Chg1s = []
+    Chgper1s = []
+    Time1s = []
+    Name2s = []
+    Month2s = []
+    Last2s=[]
+    High2s = []
+    Low2s = []
+    Chg2s = []
+    Chgper2s = []
+
+    for row in rows:
+        try:
+            # Extract name (typically in the first column)
+            Name1 = row.find_element(By.XPATH, "./td[2]/div/a/h4/span/span[2]").get_attribute("innerHTML") # Name
+            Month1 = row.find_element(By.XPATH, "./td[3]").get_attribute("innerHTML") # Month
+            Last1 = row.find_element(By.XPATH, "./td[4]/span").get_attribute("innerHTML") # High
+            High1 = row.find_element(By.XPATH, "./td[5]").get_attribute("innerHTML") # High
+            Low1 = row.find_element(By.XPATH, "./td[6]").get_attribute("innerHTML") # Low
+            Chg1 = row.find_element(By.XPATH, "./td[7]").get_attribute("innerHTML") # Change
+            Chgper1 = row.find_element(By.XPATH, "./td[8]").get_attribute("innerHTML") # Change Percentage
+            Time1 = row.find_element(By.XPATH, "./td[9]/span/span/time").get_attribute("innerHTML") # Time
+
+            Name1s.append(Name1)
+            Month1s.append(Month1)
+            Last1s.append(Last1)
+            High1s.append(High1)
+            Low1s.append(Low1)
+            Chg1s.append(Chg1)
+            Chgper1s.append(Chgper1)
+            Time1s.append(Time1)
+        except Exception as e:
+            print(f"Error in fetching data for futures: {e}")
+            continue
+    try:
+        performance_button = driver.find_element(By.XPATH, "//button[contains(text(),'Performance')]")
+        driver.execute_script("arguments[0].click();", performance_button)
+        print("Clicked the 'Performance' button.")
+        time.sleep(5)  # Allow time for data update
+    except Exception as e:
+        print(f"Error clicking the 'Perfornamce' button: {e}")
+    
+    time.sleep(5)
+    tablechangeperffutures = driver.find_element(By.XPATH, "//div[@data-test='dynamic-table']//table/tbody")
+    perfrows = tablechangeperffutures.find_elements(By.XPATH, "./tr")
+    for row in perfrows:
+        try:
+            # Extract name (typically in the first column)
+            Name2 = row.find_element(By.XPATH, "./td[2]/div/a/h4/span/span[2]").get_attribute("innerHTML") # Name
+            Month2 = row.find_element(By.XPATH, "./td[3]").get_attribute("innerHTML") # Month
+            Last2 = row.find_element(By.XPATH, "./td[4]").get_attribute("innerHTML") # High
+            High2 = row.find_element(By.XPATH, "./td[5]").get_attribute("innerHTML") # High
+            Low2 = row.find_element(By.XPATH, "./td[6]").get_attribute("innerHTML") # Low
+            Chg2 = row.find_element(By.XPATH, "./td[7]").get_attribute("innerHTML") # Change
+            Chgper2 = row.find_element(By.XPATH, "./td[8]").get_attribute("innerHTML") # Change Percentage
+
+            Name2s.append(Name2)
+            Month2s.append(Month2)
+            Last2s.append(Last2)
+            High2s.append(High2)
+            Low2s.append(Low2)
+            Chg2s.append(Chg2)
+            Chgper2s.append(Chgper2)
+
+        except Exception as e:
+            print(f"Error in fetching data for futures performance: {e}")
+            continue
+    return Name1s, Month1s, Last1s, High1s, Low1s, Chg1s, Chgper1s, Time1s, Name2s, Month2s, Last2s, High2s, Low2s, Chg2s, Chgper2s
+
+
+
 def fetch_change(driver):
     tablechange = driver.find_element(By.XPATH, "//table[@id='dailyTab']/tbody")
     rows = tablechange.find_elements(By.XPATH, "./tr")
@@ -577,7 +749,22 @@ def main(urls, filename = f"FOREX_{datetime.datetime.today().strftime("%Y-%m-%d"
             dfpercentchange.to_excel(writer, sheet_name=sheet_name2, index=False, startrow=2, startcol=2)
             dfpipchange.to_excel(writer, sheet_name=sheet_name3, index=False, startrow=2, startcol=2)
             print("Currency Market, Percent Change, Pip Change data saved to Forex2.xlsx")
+            
 
+            currency_exchange_url = "https://www.investing.com/currencies/exchange-rates-table"
+            dfexchange_rate = extract_exchangerate_data(driver, currency_exchange_url)
+            sheet_name = 'Exchange Rate Table'
+            dfexchange_rate.to_excel(writer, sheet_name=sheet_name, index=False, startrow=2, startcol=2)
+            print("Exchange Rate Table data saved to Forex2.xlsx")
+            
+            futures_url = "https://www.investing.com/currencies/fx-futures"
+            dfpricefutures, defperformancefutures = extract_futures_data(driver, futures_url)
+            sheet_name = 'Price Futures'
+            dfpricefutures.to_excel(writer, sheet_name=sheet_name, index=False, startrow=2, startcol=2)
+            sheet_name2 = 'performance Futures'
+            defperformancefutures.to_excel(writer, sheet_name=sheet_name2, index=False, startrow=2, startcol=2)
+            print("Futures data saved to Forex2.xlsx")
+            
             for url in urls:
                 print(f'Processing: {url}')
                 
@@ -594,6 +781,7 @@ def main(urls, filename = f"FOREX_{datetime.datetime.today().strftime("%Y-%m-%d"
                 
                 print(f"Saved {sheet_name} to {filename}")
             print(f"All data saved to {filename}")
+            
 
 
 
@@ -614,13 +802,13 @@ urls = [
     "https://www.investing.com/currencies/eur-gbp-technical", 
     "https://www.investing.com/currencies/usd-cad-technical",
     "https://www.investing.com/currencies/usd-chf-technical",
-    "https://www.investing.com/currencies/usd-nzd-technical",
+    "https://www.investing.com/currencies/nzd-usd-technical",
 
       # Add more URLs as needed
 ]
 main(urls)
 
-
+#https://www.investing.com/currencies/exchange-rates-table
 
 #https://www.investing.com/economic-calendar/
 #https://www.investing.com/currencies/
