@@ -189,6 +189,11 @@ def fetch_moving_averages(driver):
     return manames, simples, simplesignals, expos, exposignals
 
 def fetch_exchangerate(driver):
+
+    # Wait for the table to be present in the DOM and visible
+    tableMA = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, "//table[@id='exchange_rates_1']/tbody"))
+    )
     tableMA = driver.find_element(By.XPATH, "//table[@id='exchange_rates_1']/tbody")
     rows = tableMA.find_elements(By.XPATH, "./tr")
     
